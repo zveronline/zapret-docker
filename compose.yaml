@@ -1,10 +1,28 @@
-name: zapret
 services:
-  tpws:
-    build: .
-    command: ["--port=1080", "--socks", "--tlsrec=sni", "--disorder"]
+
+  hpts:
+    image: ghcr.io/zveronline/http-proxy-to-socks:latest
+    deploy:
+      mode: replicated
+      replicas: 1
     ports:
-      - target: 1080
-        host_ip: 127.0.0.1
-        published: ${PORT}
-        protocol: tcp
+      - "8080:8080"
+    command: -s tpws:1080 -l 0.0.0.0 -p 8080
+    networks:
+      - antidpi
+
+  tpws:
+    image: ghcr.io/zveronline/zapret-docker:latest
+    deploy:
+      mode: replicated
+      replicas: 1
+    ports:
+      - "1080:1080"
+    command: --port=1080 --socks --tlsrec=sni --disorder
+    networks:
+      - antidpi
+
+networks:
+  antidpi:
+    driver: overlay
+    attachable: true
